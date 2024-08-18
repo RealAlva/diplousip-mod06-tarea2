@@ -1,0 +1,29 @@
+{
+  "contacts": [
+    {
+      "id": "1",
+      "name": "Freddy Daniel Alvarez333",
+      "email": "falvarezpinto@gmail.com",
+      "address": "Pinto",
+      "phone": "",
+      "country": "Bolivia",
+      "city": "Av. Mutualista, Santa Cruz"
+    }
+  ],
+  "communication_history": [
+    {
+      "id": "1",
+      "contact_id": 1,
+      "tipo_comunicacion": "correo",
+      "fecha": "2024-08-01",
+      "notas": "Correo de presentación"
+    },
+    {
+      "id": 2,
+      "tipo_comunicacion": "whatsapp",
+      "fecha": "2024-08-22",
+      "notas": "reunion cierre",
+      "contact_id": 1
+    }
+  ]
+}

@@ -1,67 +1,101 @@
 <template>
   <div>
-    <h2>Historial de Comunicación</h2>
-    <CommunicationForm :form="form" :isEditing="isEditing" @submit="handleSubmit" @cancel="resetForm" />
-    <input v-model="searchQuery" placeholder="Filtrar por tipo de comunicación" />
-    <CommunicationList :communications="filteredCommunications" @edit="editCommunication" @delete="deleteCommunication" />
+    <h1>Historial de Comunicación</h1>
+    <form @submit.prevent="addCommunication">
+      <div>
+        <label for="tipo_comunicacion">Tipo de Comunicación:</label>
+        <input v-model="tipo_comunicacion" id="tipo_comunicacion" />
+      </div>
+      <div>
+        <label for="notas">Notas:</label>
+        <input v-model="notas" id="notas" />
+      </div>
+      <button type="submit">Agregar</button>
+      <button @click="resetForm">Cancelar</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo de Comunicación</th>
+          <th>Fecha</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="communication in communications" :key="communication.id">
+          <td>{{ communication.tipo_comunicacion }}</td>
+          <td>{{ communication.fecha }}</td>
+          <td>{{ communication.notas }}</td>
+          <td>
+            <button @click="editCommunication(communication)">Editar</button>
+            <button @click="deleteCommunication(communication.id)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script>
-import CommunicationForm from '../components/CommunicationForm.vue';
-import CommunicationList from '../components/CommunicationList.vue';
-import { useStore } from 'vuex';
-import { computed, reactive } from 'vue';
 
 export default {
-  components: {
-    CommunicationForm,
-    CommunicationList,
-  },
-  setup() {
-    const store = useStore();
-    const form = reactive({ id: null, contact_id: '', tipo_comunicacion: '', fecha: '', notas: '' });
-    const isEditing = computed(() => !!form.id);
-    const searchQuery = reactive('');
-
-    const filteredCommunications = computed(() =>
-      store.getters['communicationHistory/filteredCommunications'](searchQuery)
-    );
-
-    const handleSubmit = (communication) => {
-      if (isEditing.value) {
-        store.dispatch('communicationHistory/updateCommunication', communication);
-      } else {
-        store.dispatch('communicationHistory/addCommunication', communication);
-      }
-      resetForm();
-    };
-
-    const resetForm = () => {
-      Object.assign(form, { id: null, contact_id: '', tipo_comunicacion: '', fecha: '', notas: '' });
-    };
-
-    const editCommunication = (communication) => {
-      Object.assign(form, communication);
-    };
-
-    const deleteCommunication = (id) => {
-      store.dispatch('communicationHistory/deleteCommunication', id);
-    };
-
+  data() {
     return {
-      form,
-      isEditing,
-      handleSubmit,
-      resetForm,
-      editCommunication,
-      deleteCommunication,
-      searchQuery,
-      filteredCommunications,
+      tipo_comunicacion: '',
+      notas: '',
+      fecha: new Date().toISOString().split('T')[0],  // Fecha por defecto a hoy
+      communications: []
     };
   },
-  mounted() {
-    this.$store.dispatch('communicationHistory/fetchCommunications');
+  methods: {
+    async addCommunication() {
+      // Validaciones para campos vacíos
+      if (!this.tipo_comunicacion || !this.notas) {
+        alert("Por favor, completa todos los campos requeridos.");
+        return;
+      }
+
+      const newCommunication = {
+        id: Date.now(),  // Generar un ID único
+        tipo_comunicacion: this.tipo_comunicacion,
+        fecha: this.fecha,
+        notas: this.notas,
+        contact_id: 1  // Supongamos que estamos vinculando al contacto con ID 1 por defecto
+      };
+
+      try {
+        await this.$store.dispatch('communicationHistory/addCommunication', newCommunication);
+        this.resetForm();
+      } catch (error) {
+        console.error('Error al agregar la comunicación:', error);
+      }
+    },
+    resetForm() {
+      this.tipo_comunicacion = '';
+      this.notas = '';
+      this.fecha = new Date().toISOString().split('T')[0];
+    },
+    async fetchCommunications() {
+      try {
+        await this.$store.dispatch('communicationHistory/fetchCommunications');
+        this.communications = this.$store.state.communicationHistory.communicationHistory;
+      } catch (error) {
+        console.error('Error al obtener las comunicaciones:', error);
+      }
+    },
+    async deleteCommunication(id) {
+      try {
+        await this.$store.dispatch('communicationHistory/deleteCommunication', id);
+        await this.fetchCommunications();
+      } catch (error) {
+        console.error('Error al eliminar la comunicación:', error);
+      }
+    },
   },
+  created() {
+    this.fetchCommunications();
+  }
 };
 </script>
