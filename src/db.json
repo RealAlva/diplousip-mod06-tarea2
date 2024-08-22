@@ -1,0 +1,13 @@
+{
+  "contacts": [
+    {
+      "id": "1",
+      "name": "Freddy Daniel Alvarez",
+      "email": "falvarezpinto@gmail.com",
+      "address": "Pinto",
+      "phone": "",
+      "country": "Bolivia",
+      "city": "Av. Mutualista, Santa Cruz"
+    }
+  ]
+}
